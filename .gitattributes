@@ -1,0 +1,22 @@
+# Normalize line endings: Git stores LF, checks out native on each platform.
+# Prevents CRLF/LF churn in diffs when collaborating across Windows/macOS/Linux.
+* text=auto eol=lf
+
+# Source and text files: always LF, even on Windows checkouts.
+*.zig   text eol=lf
+*.zon   text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.txt   text eol=lf
+
+# Binary files: never normalize, never diff as text.
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.ico   binary
+*.zip   binary
+*.tar   binary
+*.gz    binary
+*.wasm  binary
