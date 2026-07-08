@@ -20,7 +20,6 @@ const flate = std.compress.flate;
 const build_options = @import("build_options");
 
 const VGM_RATE: f64 = 44100.0;
-/// Maximum decompressed VGM size (64 MiB).
 const MAX_VGM_BYTES: usize = 64 * 1024 * 1024;
 
 const ConvertError = error{

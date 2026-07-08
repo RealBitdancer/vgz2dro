@@ -2,7 +2,9 @@
 
 Convert OPL-family **VGM**/**VGZ** logs to **DRO** (DOSBox Raw OPL).
 
-[![CI](https://github.com/RealBitdancer/vgz2dro/actions/workflows/ci.yml/badge.svg)](https://github.com/RealBitdancer/vgz2dro/actions/workflows/ci.yml)
+[![Linux](https://github.com/RealBitdancer/vgz2dro/actions/workflows/linux.yml/badge.svg)](https://github.com/RealBitdancer/vgz2dro/actions/workflows/linux.yml)
+[![macOS](https://github.com/RealBitdancer/vgz2dro/actions/workflows/macos.yml/badge.svg)](https://github.com/RealBitdancer/vgz2dro/actions/workflows/macos.yml)
+[![Windows](https://github.com/RealBitdancer/vgz2dro/actions/workflows/windows.yml/badge.svg)](https://github.com/RealBitdancer/vgz2dro/actions/workflows/windows.yml)
 
 ## What it does
 
@@ -82,5 +84,5 @@ Input is limited to **64 MiB** decompressed VGM data.
 
 ## License
 
-MIT - see [LICENSE.txt](LICENSE.txt). Copyright (c) 2026 Bitdancer
+MIT - see [LICENSE](LICENSE). Copyright (c) 2026 Bitdancer
 (github.com/RealBitdancer).
