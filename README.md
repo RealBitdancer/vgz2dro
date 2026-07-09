@@ -41,11 +41,10 @@ in the VGM header and written with DRO hardware type **Dual OPL2**. Dual OPL3 (t
 YMF262 chips) is not fully representable in DRO v0.1; second-chip writes are captured
 but may not replay correctly on all players.
 
-VGMs that use a non-OPL chip (YM2612, SN76489, OPL4 PCM, …) are detected, reported,
-and skipped rather than producing garbage.
-
-Truncated files, unknown opcodes, and invalid header offsets are rejected with an
-error instead of producing a partial `.dro`.
+If the VGM header lists no OPL-family chip clock (YM2612, SN76489, OPL4 PCM, and so
+on), the file is reported and skipped rather than turned into an empty or misleading
+`.dro`. Truncated files, unknown opcodes, and invalid header offsets are rejected
+with an error instead of a partial output.
 
 ## Building
 
@@ -80,9 +79,25 @@ vgz2dro: song.vgz -> song.dro  [OPL3, 14820 writes, 92.3 s, 31104 bytes]
 vgz2dro: 1 converted, 0 skipped/failed
 ```
 
-Input is limited to **64 MiB** decompressed VGM data.
+Input is limited to **64 MiB** of decompressed VGM data.
+
+## Playing the output
+
+The files this tool produces are DRO v0.1, the original DOSBox layout rather than the
+later v2.0 packing. The same layout was called v1.0 before DOSBox 0.73 swapped the
+version field names, so some tools (opal's player among them) say "DRO version 1".
+Either name means the same bytes. One straightforward way to hear them is the example
+player shipped with [opal](https://github.com/RealBitdancer/opal), an OPL2/OPL3
+emulator:
+
+```sh
+player song.dro
+```
+
+Build instructions live in that repository. The player also accepts HSC and IMF/WLF,
+but for the output of `vgz2dro` the DRO path is the one that matters.
 
 ## License
 
-MIT - see [LICENSE](LICENSE). Copyright (c) 2026 Bitdancer
+MIT. See [LICENSE](LICENSE). Copyright (c) 2026 Bitdancer
 (github.com/RealBitdancer).

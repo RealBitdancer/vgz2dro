@@ -222,7 +222,7 @@ fn convert(d: []const u8, off: usize, m: *Dro) ConvertError!u64 {
         if (wait > 0) m.pending += @floatFromInt(wait);
     }
 
-    try m.flush(); // trailing delay
+    try m.flush();
     return writes;
 }
 
