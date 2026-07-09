@@ -253,7 +253,7 @@ fn vgmDataOffset(d: []const u8) ?usize {
     if (ver >= 0x150 and u32le(d, 0x34) != 0) {
         const rel = u32le(d, 0x34);
         const off, const overflow = @addWithOverflow(@as(usize, 0x34), @as(usize, rel));
-        if (overflow != 0) return null;
+        if (overflow != 0 or off < 0x40 or off > d.len) return null;
         return off;
     }
     return 0x40;
@@ -400,10 +400,6 @@ fn process(io: Io, gpa: std.mem.Allocator, stdout: *Io.Writer, in_path: []const 
         std.debug.print("vgz2dro: {s}: invalid VGM data offset\n", .{in_path});
         return false;
     };
-    if (off < 0x40 or off > d.len) {
-        std.debug.print("vgz2dro: {s}: invalid VGM data offset\n", .{in_path});
-        return false;
-    }
 
     const info = oplInfo(d, off);
     if (info.opl2 == 0 and info.oplm == 0 and info.y8950 == 0 and info.opl3 == 0) {
@@ -564,7 +560,8 @@ test "opl2 register write" {
     try std.testing.expectEqual(@as(u8, 0), info.hw_type);
     const dro = try buildDro(gpa, &m, info.hw_type);
     defer gpa.free(dro);
-    try std.testing.expectEqual(@as(u8, 0), dro[0x10]); // hw type in header
+    // Header: magic(8) + version(4) + lengthMS(4) + lengthBytes(4) + hwType @ 0x14
+    try std.testing.expectEqual(@as(u8, 0), dro[0x14]);
 }
 
 test "opl3 bank switch" {
@@ -579,7 +576,7 @@ test "opl3 bank switch" {
     const writes = try convert(vgm, off, &m);
     try std.testing.expectEqual(@as(u64, 2), writes);
     try std.testing.expectEqualSlices(u8, &[_]u8{
-        0x01, 0x02, // port 0 write
+        0x04, 0x01, 0x02, // port 0 write of reg 0x01 (escape prefix)
         0x03, // bank 1
         0x05, 0x06, // port 1 write
     }, m.data.items);
@@ -675,5 +672,11 @@ test "invalid data offset rejected" {
     const vgm = try makeTestVgm(gpa, 0x80, &[_]u8{0x66}, .{ .opl2 = 3_579_545 });
     defer gpa.free(vgm);
     writeU32At(vgm, 0x34, 0xffff_fff0); // points past any realistic file
+    try std.testing.expect(vgmDataOffset(vgm) == null);
+
+    writeU32At(vgm, 0x34, @intCast(vgm.len - 0x34 + 1)); // one byte past EOF
+    try std.testing.expect(vgmDataOffset(vgm) == null);
+
+    writeU32At(vgm, 0x34, 0x08); // lands inside the header (off < 0x40)
     try std.testing.expect(vgmDataOffset(vgm) == null);
 }

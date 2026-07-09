@@ -52,8 +52,9 @@ pub fn build(b: *std.Build) void {
     const tests = b.addTest(.{
         .root_module = exe_mod,
     });
+    const run_tests = b.addRunArtifact(tests);
     const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&tests.step);
+    test_step.dependOn(&run_tests.step);
 
     // This creates a top level step. Top level steps have a name and can be
     // invoked by name when running `zig build` (e.g. `zig build run`).
