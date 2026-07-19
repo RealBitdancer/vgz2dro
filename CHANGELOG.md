@@ -2,7 +2,35 @@
 
 All notable changes to this project are documented here.
 
-## [1.0.1] - 2026-07-08
+## [1.1.0] - 2026-07-18
+
+### Changed
+
+- The project builds with stable Zig 0.16.0 instead of a 0.17.0-dev snapshot.
+  `build.zig` and `build.zig.zon` were regenerated with `zig init` from 0.16.0
+  and re-fitted (executable only, ReleaseSafe default, manifest version exposed
+  as `build_options.version`). The package fingerprint is unchanged. The only
+  source-level difference is the run step's argument passthrough, since
+  `addPassthruArgs` does not exist in 0.16.0. CI now pins Zig 0.16.0 on all
+  three platforms.
+
+### Added
+
+- A `doc/` folder, starting with the DRO format notes in
+  [doc/dro-format.md](doc/dro-format.md)
+- A test locking the output header to the 24-byte v1 layout: version word zero at
+  offset 8, hardware type at 0x14, and zeroed padding at 0x15-0x17. The padding is
+  load-bearing, since readers such as AdPlug and opal's player take nonzero bytes
+  there to mean the early DOSBox 21-byte header (single-byte hardware type) and
+  would start parsing commands three bytes too soon.
+
+### Documentation
+
+- doc/dro-format.md describes the written header and command layout, the v0.1
+  versus v1.0 version naming, the early 21-byte header variant and how readers
+  detect it, the timing conversion, and the hardware type mapping. The early-header
+  knowledge is imported from the opal 1.0.2 DRO decoder fix, and the README points
+  there for the details.
 
 ### Fixed
 

@@ -325,6 +325,8 @@ fn buildDro(gpa: std.mem.Allocator, m: *const Dro, hw_type: u8) ![]u8 {
     try appendU32(&out, gpa, ms_u32);
     try appendU32(&out, gpa, data_u32);
     try out.append(gpa, hw_type); // 0=OPL2, 1=OPL3, 2=Dual OPL2
+    // Padding must stay zero: readers (AdPlug, opal) take nonzero bytes here to
+    // mean the early 21-byte header, whose command data starts at this offset.
     try out.appendSlice(gpa, &[_]u8{ 0, 0, 0 });
     try out.appendSlice(gpa, m.data.items);
     return out.toOwnedSlice(gpa);
@@ -562,6 +564,30 @@ test "opl2 register write" {
     defer gpa.free(dro);
     // Header: magic(8) + version(4) + lengthMS(4) + lengthBytes(4) + hwType @ 0x14
     try std.testing.expectEqual(@as(u8, 0), dro[0x14]);
+}
+
+test "header is the 24-byte v1 layout, never the early 21-byte one" {
+    const gpa = std.testing.allocator;
+    const body = [_]u8{ 0x5a, 0x20, 0x01, 0x62, 0x66 };
+    const vgm = try makeTestVgm(gpa, 0x80, &body, .{ .opl2 = 3_579_545 });
+    defer gpa.free(vgm);
+
+    const off = vgmDataOffset(vgm).?;
+    var m = Dro{ .gpa = gpa };
+    defer m.data.deinit(gpa);
+    _ = try convert(vgm, off, &m);
+    const dro = try buildDro(gpa, &m, oplInfo(vgm, off).hw_type);
+    defer gpa.free(dro);
+
+    try std.testing.expectEqualSlices(u8, "DBRAWOPL", dro[0..8]);
+    try std.testing.expectEqual(@as(u16, 0), u16le(dro, 8)); // v1 readers require this word zero
+    try std.testing.expectEqual(@as(u16, 1), u16le(dro, 10));
+    try std.testing.expectEqual(@as(u32, 16), u32le(dro, 12)); // 735 samples -> 16 ms
+    try std.testing.expectEqual(@as(u32, @intCast(m.data.items.len)), u32le(dro, 16));
+    // Readers detect the early 21-byte header via nonzero padding after the
+    // hardware type. Zero padding keeps them on the 24-byte parse.
+    try std.testing.expectEqual(@as(u32, 0), u32le(dro, 20) & 0xffff_ff00);
+    try std.testing.expectEqual(@as(usize, 24) + m.data.items.len, dro.len);
 }
 
 test "opl3 bank switch" {

@@ -38,7 +38,7 @@ Any OPL-family chip is converted:
 
 Dual OPL2 VGMs (Sound Blaster Pro and similar) are detected via the dual-chip flag
 in the VGM header and written with DRO hardware type **Dual OPL2**. Dual OPL3 (two
-YMF262 chips) is not fully representable in DRO v0.1; second-chip writes are captured
+YMF262 chips) is not fully representable in DRO v0.1. Second-chip writes are captured
 but may not replay correctly on all players.
 
 If the VGM header lists no OPL-family chip clock (YM2612, SN76489, OPL4 PCM, and so
@@ -48,7 +48,7 @@ with an error instead of a partial output.
 
 ## Building
 
-Requires **Zig 0.17.0-dev** (see `.minimum_zig_version` in `build.zig.zon`).
+Requires **Zig 0.16.0** (see `.minimum_zig_version` in `build.zig.zon`).
 
 ```sh
 zig build                 # -> zig-out/bin/vgz2dro[.exe]
@@ -86,9 +86,15 @@ Input is limited to **64 MiB** of decompressed VGM data.
 The files this tool produces are DRO v0.1, the original DOSBox layout rather than the
 later v2.0 packing. The same layout was called v1.0 before DOSBox 0.73 swapped the
 version field names, so some tools (opal's player among them) say "DRO version 1".
-Either name means the same bytes. One straightforward way to hear them is the example
-player shipped with [opal](https://github.com/RealBitdancer/opal), an OPL2/OPL3
-emulator:
+Either name means the same bytes.
+
+The exact header and command layout, including the early 21-byte header variant that
+readers detect by nonzero padding bytes, is documented in
+[doc/dro-format.md](doc/dro-format.md). The short version: vgz2dro always writes the
+24-byte header with zeroed padding, so every known reader parses it unambiguously.
+
+One straightforward way to hear the output is the example player shipped with
+[opal](https://github.com/RealBitdancer/opal), an OPL2/OPL3 emulator:
 
 ```sh
 player song.dro

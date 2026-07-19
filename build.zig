@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Bitdancer (github.com/RealBitdancer).
 // SPDX-License-Identifier: MIT
 //
-// Generated using `zig init`, cleaned up "by hand"
+// Generated using `zig init` (Zig 0.16.0), cleaned up "by hand"
 //
 
 const std = @import("std");
@@ -27,34 +27,28 @@ pub fn build(b: *std.Build) void {
         "Optimization mode (default ReleaseSafe)",
     ) orelse .ReleaseSafe;
 
-    const exe_mod = b.createModule(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+    const exe = b.addExecutable(.{
+        .name = "vgz2dro",
+        .root_module = b.createModule(.{
+            // b.createModule defines a module just like b.addModule but,
+            // unlike b.addModule, it does not expose the module to consumers of
+            // this package, which is why we don't have to give it a name.
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
 
     // Expose the manifest version to the program as `build_options.version`.
     const options = b.addOptions();
     options.addOption([]const u8, "version", @import("build.zig.zon").version);
-    exe_mod.addOptions("build_options", options);
-
-    const exe = b.addExecutable(.{
-        .name = "vgz2dro",
-        .root_module = exe_mod,
-    });
+    exe.root_module.addOptions("build_options", options);
 
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default
     // step). By default the install prefix is `zig-out/` but can be overridden
     // by passing `--prefix` or `-p`.
     b.installArtifact(exe);
-
-    const tests = b.addTest(.{
-        .root_module = exe_mod,
-    });
-    const run_tests = b.addRunArtifact(tests);
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_tests.step);
 
     // This creates a top level step. Top level steps have a name and can be
     // invoked by name when running `zig build` (e.g. `zig build run`).
@@ -72,5 +66,18 @@ pub fn build(b: *std.Build) void {
 
     // This allows the user to pass arguments to the application in the build
     // command itself, like this: `zig build run -- arg1 arg2 etc`
-    run_cmd.addPassthruArgs();
+    if (b.args) |args| {
+        run_cmd.addArgs(args);
+    }
+
+    // Creates an executable that will run `test` blocks from the executable's
+    // root module.
+    const exe_tests = b.addTest(.{
+        .root_module = exe.root_module,
+    });
+
+    // A run step that will run the test executable.
+    const run_exe_tests = b.addRunArtifact(exe_tests);
+    const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_exe_tests.step);
 }

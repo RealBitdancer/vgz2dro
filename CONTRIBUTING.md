@@ -10,7 +10,8 @@ with evidence. A VGM that converts wrongly, the DRO bytes you expected against t
 got, or a citation of the [VGM specification](https://vgmrips.net/wiki/VGM_Specification)
 or the [DRO format page](https://moddingwiki.shikadi.net/wiki/DRO_Format) are all good
 evidence. An opinion that another converter does it differently is a starting point, not
-proof. The spec settles arguments.
+proof. The spec settles arguments. What vgz2dro itself writes, and why, is recorded in
+[doc/dro-format.md](doc/dro-format.md).
 
 Robustness fixes are close behind. The converter reads untrusted files and is expected to
 reject malformed input with a clear error instead of writing a broken `.dro`. A crashing or
